@@ -1,0 +1,121 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cron-jhg
+spec:
+  schedule: h
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          initContainers:
+          - name: init-first-ssh
+            image: ictu/sshpass:latest
+            command: ["/bin/sh"]
+            args:
+            - "-c"
+            - |
+              sshpass -p $SERVER_PASS ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << EOF
+              cd
+              mkdir -p dumps
+              mysqldump -u $DB_USER -p$DB_PASS --databases $DB_NAME > dumps/dump.sql
+              exit
+              EOF
+            env:
+            - name: SERVER_IP
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: SERVER_IP
+            - name: SERVER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: SERVER_USER
+            - name: SERVER_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: SERVER_PASS
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: DB_PASS
+            volumeMounts:
+            - name: dumps
+              mountPath: dumps
+          - name: init-two-scp
+            image: ictu/sshpass:latest
+            command: ["/bin/sh"]
+            args:
+            - "-c"
+            - sshpass -p $SERVER_PASS scp -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP:dumps/dump.sql dumps
+            env:
+            - name: SERVER_IP
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: SERVER_IP
+            - name: SERVER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: SERVER_USER
+            - name: SERVER_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: SERVER_PASS
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: DB_PASS
+            volumeMounts:
+            - name: dumps
+              mountPath: dumps
+          containers:
+          - name: import-db
+            image: mysql
+            command: ["/bin/sh"]
+            args:
+            - "-c"
+            - mysql -u root -p$LOCAL_MYSQL_PASS -h $LOCAL_MYSQL_HOST -P 3306 < dumps/dump.sql
+            env:
+            - name: LOCAL_MYSQL_HOST
+              value: jhg
+            - name: LOCAL_MYSQL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: jhg-creds
+                  key: LOCAL_MYSQL_PASS
+            volumeMounts:
+            - name: dumps
+              mountPath: dumps
+          volumes:
+            - name: dumps
+              hostPath:
+                path: j
+                type: DirectoryOrCreate
+          restartPolicy: OnFailure
