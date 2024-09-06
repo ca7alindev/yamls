@@ -1,0 +1,41 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: catalin
+spec:
+  refreshInterval: "15s"
+  secretStoreRef:
+    name: vault-backend
+    kind: SecretStore
+  target:
+    name: catalin-creds
+  data:
+  - secretKey: SERVER_IP
+    remoteRef:
+      key: kv/catalin
+      property: SERVER_IP
+  - secretKey: SERVER_USER
+    remoteRef:
+      key: kv/catalin
+      property: SERVER_USER
+  - secretKey: SERVER_PASS
+    remoteRef:
+      key: kv/catalin
+      property: SERVER_PASS
+  - secretKey: DB_NAME
+    remoteRef:
+      key: kv/catalin
+      property: DB_NAME
+  - secretKey: DB_USER
+    remoteRef:
+      key: kv/catalin
+      property: DB_USER
+  - secretKey: DB_PASS
+    remoteRef:
+      key: kv/catalin
+      property: DB_PASS
+  - secretKey: LOCAL_MYSQL_PASS
+    remoteRef:
+      key: kv/mysql
+      property: mysql_root_password
+
