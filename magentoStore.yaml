@@ -1,0 +1,23 @@
+apiVersion: store.magento.web7.md/v1
+kind: StoreConfig
+metadata:
+  name: 2
+spec:
+  forProvider:
+    code: 112
+    websiteId: 2
+    locale: 2
+    baseCurrencyCode: 2
+    defaultDisplayCurrencyCode: 2
+    timezone: 2
+    weightUnit: 2
+    baseUrl: 2
+    baseLinkUrl: 2
+    baseStaticUrl: 2
+    baseMediaUrl: 2
+    secureBaseUrl: 2
+    secureBaseLinkUrl: 2
+    secureBaseStaticUrl: 2
+    secureBaseMediaUrl: 2
+  providerConfigRef:
+    name:  2
